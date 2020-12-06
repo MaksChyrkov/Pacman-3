@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PacMan</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+<div>Press the button and also check out console!(F12)</div>
+<div id="maze-button-holder">
+    <button id="maze-button">Generate Maze For PacMan</button>
+</div>
+<div id="world"></div>
+<div id="pacman"></div>
+<div id="ghost"></div>
+<div id="steps"></div>
+<div id="time"></div>
+<div id="memory"></div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+<script src="bfsLeeAlg.js"></script>
+<script>
+
+    $("#maze-button").click(function(){
+        var t0 = performance.now()
+        console.clear();
+        generateView();
+        displayWorld();
+        displaySteps();
+        displayMemory()
+        var t1 = performance.now()
+        time = t1-t0;
+        displayTime()
+    });
+
+    var time;
+    var matrix;
+    var route;
+    var steps;
+    var x1 = 0;
+    var y1 = 1;
+    var x2 = 6;
+    var y2 = 6;
+
+    function generateView() {
+        var maxVal = -1;
+        while (maxVal < 1) { // Sometimes we generate an incompletable matrix
+            var aMatrix = generateRandomMatrix(8, 8, x1, y1, x2, y2);
+            var checkedMatrix = lee.pathfinder(aMatrix, x1, y1, x2, y2);
+            var maxVal = checkedMatrix[1];
+        }
+
+        matrix = checkedMatrix[0];
+        route = lee.backtrace(matrix, x1, y1, x2, y2);
+
+        console.log("Generate random matrix maze for PacMan. -1 is wall, 0 is empty space. Then using Lee algorithm to value every cell:")
+        console.log(matrix)
+        console.log("Using Lee algorithm to find the shortest way, here it is:")
+        console.log(route)
+    }
+
+    function generateRandomMatrix(rows, cols, x1, y1, x2, y2) {
+        var matrix = [];
+        var percentChance = 0.5; // Chance to generate a -1 (wall)
+
+        for (var i = 0; i < rows; i++){
+            matrix.push([]);
+            for (var j=0; j < cols; j++) {
+
+                if (Math.random() < percentChance) {
+                    matrix[i].push(0);
+                } else {
+                    matrix[i].push(-1);
+                }
+
+            }
+        }
+
+        matrix[x1][y1] = 0;
+        matrix[x2][y2] = 0;
+        return matrix;
+    }
+
+    function displayWorld(){
+
+        for(var i=0; i<route.length; i++){
+            for(var j=1; j<route[i].length; j++){
+                    matrix[route[i][j-1]][route[i][j]] = -2;
+            }}
+
+        var output = '';
+        for(var i=0; i<matrix.length; i++){
+            output += "\n<div class='row'>\n"
+            for(var j=0; j<matrix[i].length; j++){
+//            BRICKS
+                if(matrix[i][j] == -1)
+                    output += "<div class='brick'></div>";
+                else if(matrix[i][j] == -2)
+                    output += "<div class='coin'></div>";
+                else
+                    output += "<div class='empty'></div>";
+            }
+            output += "\n</div>"
+        }
+        $('#world').html(output);
+
+        document.getElementById('pacman').style.left = 20+"px";
+        document.getElementById('pacman').style.top = 40+"px";
+
+        document.getElementById('ghost').style.left = 120+"px";
+        document.getElementById('ghost').style.top = 160+"px";
+    }
+
+    function displaySteps(){
+        steps = route.length - 1;
+        document.getElementById('steps').innerHTML = "Steps " + steps;
+    }
+
+    function displayTime(){
+        document.getElementById('time').innerHTML = "Time " + time;
+    }
+
+    function displayMemory(){
+        document.getElementById('memory').innerHTML = "Memory monitoring not available in JS";
+    }
+</script>
+</body>
+</html>
